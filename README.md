@@ -1,5 +1,7 @@
 # MacTTC
 
+Current version: `0.9.5`
+
 MacTTC is a macOS Tauri app for updating the Tamriel Trade Centre AddOn price table for The Elder Scrolls Online.
 
 The app stays in the macOS menu bar by default. Users can open the main window from the status menu, choose the NA or EU download source, and run an update into the fixed local TamrielTradeCentre AddOn folder.
@@ -26,7 +28,7 @@ The main window includes:
 The app window uses these size limits:
 
 - Initial width: `900`
-- Initial height: `680`
+- Initial height: `700`
 - Minimum width: `720`
 - Minimum height: `680`
 
@@ -186,7 +188,7 @@ Expected outputs:
 
 ```text
 src-tauri/target/release/bundle/macos/MacTTC.app
-src-tauri/target/release/bundle/dmg/MacTTC_0.1.0_aarch64.dmg
+src-tauri/target/release/bundle/dmg/MacTTC_0.9.5_aarch64.dmg
 ```
 
 If Tauri's DMG script fails after producing the `.app`, the DMG can be created manually with `hdiutil` from the generated app bundle.

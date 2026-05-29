@@ -1874,7 +1874,7 @@ dependencies = [
 
 [[package]]
 name = "mac-ttc"
-version = "0.1.0"
+version = "0.9.5"
 dependencies = [
  "chrono",
  "dirs",
