@@ -1,0 +1,24 @@
+[package]
+name = "mac-ttc"
+version = "0.1.0"
+description = "Scheduled ZIP downloader and extractor for macOS"
+authors = ["MacTTC"]
+edition = "2021"
+
+[lib]
+name = "mac_ttc_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "6"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-dialog = "2"
+tokio = { version = "1", features = ["fs", "io-util", "macros", "rt-multi-thread", "time"] }
+zip = "2"

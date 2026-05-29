@@ -1,0 +1,10 @@
+# Tauri / Rust
+/src-tauri/target
+/target
+
+# Node.js
+/node_modules
+
+# macOS
+.DS_Store
+__MACOSX
