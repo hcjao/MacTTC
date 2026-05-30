@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "MacTTC",
-  "version": "0.9.5",
+  "version": "0.9.7",
   "identifier": "com.macttc.downloader",
   "build": {
     "beforeDevCommand": "npm run dev",

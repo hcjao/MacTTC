@@ -38,18 +38,11 @@ type TranslationKey =
   | "sourceEuRegion"
   | "run"
   | "runningButton"
-  | "status"
   | "lastStarted"
   | "lastFinished"
   | "lastSuccess"
   | "running"
   | "idle"
-  | "needsAttention"
-  | "notRunYet"
-  | "downloadingArchive"
-  | "extractingArchive"
-  | "completed"
-  | "failed"
   | "openFolder";
 
 const DOWNLOAD_SOURCES = {
@@ -73,18 +66,11 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     sourceEuRegion: "歐洲",
     run: "執行",
     runningButton: "執行中",
-    status: "狀態",
     lastStarted: "開始時間",
     lastFinished: "完成時間",
     lastSuccess: "上次成功",
     running: "執行中",
     idle: "待命",
-    needsAttention: "需要處理",
-    notRunYet: "尚未執行",
-    downloadingArchive: "正在下載壓縮檔",
-    extractingArchive: "下載完成，正在解壓縮",
-    completed: "完成下載與解壓縮",
-    failed: "執行失敗",
     openFolder: "開啟資料夾",
   },
   en: {
@@ -100,29 +86,13 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
     sourceEuRegion: "Europe",
     run: "Run",
     runningButton: "Running",
-    status: "Status",
     lastStarted: "Start Time",
     lastFinished: "Finish Time",
     lastSuccess: "Last Success",
     running: "Running",
     idle: "Idle",
-    needsAttention: "Needs attention",
-    notRunYet: "Not run yet",
-    downloadingArchive: "Downloading archive",
-    extractingArchive: "Download complete. Extracting archive",
-    completed: "Download and extraction complete",
-    failed: "Execution failed",
     openFolder: "Open Folder",
   },
-};
-
-const STATUS_MESSAGE_KEYS: Record<string, TranslationKey | undefined> = {
-  讀取中: "loading",
-  尚未執行: "notRunYet",
-  正在下載壓縮檔: "downloadingArchive",
-  "下載完成，正在解壓縮": "extractingArchive",
-  完成下載與解壓縮: "completed",
-  執行失敗: "failed",
 };
 
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -190,10 +160,6 @@ app.innerHTML = `
     </section>
 
     <section class="status-panel">
-      <div hidden>
-        <p class="eyebrow" data-i18n="status">狀態</p>
-        <h2 id="message" data-i18n="loading">讀取中</h2>
-      </div>
       <dl>
         <div>
           <dt data-i18n="lastStarted">開始時間</dt>
@@ -208,7 +174,6 @@ app.innerHTML = `
           <dd id="last-success">-</dd>
         </div>
       </dl>
-      <p id="update-summary" class="update-summary" hidden></p>
     </section>
   </section>
 `;
@@ -220,7 +185,6 @@ const selectedSource = getElement<HTMLElement>("selected-source-url");
 const destinationPath = getElement<HTMLElement>("destination-path");
 const destinationState = getElement<HTMLParagraphElement>("destination-state");
 const statusPill = getElement<HTMLDivElement>("status-pill");
-const message = getElement<HTMLHeadingElement>("message");
 const lastStarted = getElement<HTMLElement>("last-started");
 const lastFinished = getElement<HTMLElement>("last-finished");
 const lastSuccess = getElement<HTMLElement>("last-success");
@@ -354,11 +318,9 @@ function renderStatus(status: JobStatus) {
   lastStatus = status;
   statusPill.textContent = status.running ? t("running") : t("idle");
   statusPill.classList.toggle("running", status.running);
-  message.textContent = translateStatusMessage(status);
   lastStarted.textContent = status.lastStartedAt ?? "-";
   lastFinished.textContent = status.lastFinishedAt ?? "-";
   lastSuccess.textContent = status.lastSuccessAt ?? "-";
-  renderUpdateSummary(status);
   updateActionAvailability(status.running);
 
   if (status.lastError) {
@@ -366,12 +328,6 @@ function renderStatus(status: JobStatus) {
   } else {
     lastDialogError = "";
   }
-}
-
-function renderUpdateSummary(status: JobStatus) {
-  const summary = getElement<HTMLParagraphElement>("update-summary");
-  summary.hidden = true;
-  summary.textContent = "";
 }
 
 function updateActionAvailability(running = false) {
@@ -404,7 +360,6 @@ async function showError(error: unknown) {
   }
 
   lastDialogError = text;
-  message.textContent = t("needsAttention");
   await showDialogMessage(text, {
     title: "MacTTC",
     kind: "error",
@@ -443,20 +398,6 @@ function applyTranslations() {
   });
   revealFolderButton.title = t("openFolder");
   revealFolderButton.setAttribute("aria-label", revealFolderButton.title);
-}
-
-function translateStatusMessage(status: JobStatus): string {
-  if (!status.message) {
-    return "";
-  }
-  if (status.lastSuccessAt && !status.lastError) {
-    return t("completed");
-  }
-  const key = STATUS_MESSAGE_KEYS[status.message];
-  if (key) {
-    return t(key);
-  }
-  return status.running ? t("running") : status.message;
 }
 
 function t(key: TranslationKey): string {

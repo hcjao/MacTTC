@@ -354,16 +354,3 @@ dd {
   font-size: 14px;
   font-weight: 700;
 }
-
-.update-summary {
-  margin: 0;
-  overflow-wrap: anywhere;
-  border: 1px solid #a8d7cf;
-  border-radius: 7px;
-  padding: 12px 14px;
-  background: #edf7f4;
-  color: #245e5a;
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1.45;
-}
