@@ -285,23 +285,35 @@ input:focus {
 
 .destination-display {
   display: grid;
+  gap: 6px;
+  border: 1px solid #cbd5cf;
+  border-radius: 7px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.destination-display span {
+  color: #6d7774;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.destination-row {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) 46px;
   gap: 10px;
-  align-items: stretch;
+  align-items: center;
 }
 
 .destination-display code {
   display: flex;
-  min-height: 46px;
+  min-height: 22px;
   align-items: center;
   overflow-wrap: anywhere;
-  border: 1px solid #cbd5cf;
-  border-radius: 7px;
-  padding: 10px 13px;
-  background: #fff;
+  padding: 0;
   color: #1f2528;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.35;
 }
 

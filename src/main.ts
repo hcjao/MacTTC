@@ -144,9 +144,11 @@ app.innerHTML = `
       </div>
 
       <div class="field">
-        <span class="field-label" data-i18n="destinationLabel">目的資料夾</span>
-        <div class="destination-display">
-          <code id="destination-path">讀取中</code>
+        <div class="destination-row">
+          <div class="destination-display">
+            <span data-i18n="destinationLabel">目的資料夾</span>
+            <code id="destination-path">讀取中</code>
+          </div>
           <button id="reveal-folder" class="icon-button" type="button" title="開啟資料夾" aria-label="開啟資料夾">
             <span aria-hidden="true">↗</span>
           </button>
