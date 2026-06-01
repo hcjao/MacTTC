@@ -6,8 +6,11 @@ use tauri::{
 };
 
 use crate::{
-    config::{default_schedule_interval_hours, fixed_destination_string, save_config_to_disk},
-    localization::tray_labels,
+    config::{
+        default_schedule_interval_hours, fixed_destination_string, save_config_to_disk,
+        trade_url_for_download_source, AppConfig,
+    },
+    localization::{tray_labels, TrayLabels},
     lock_error,
     scheduler::restart_scheduler,
     sync_launch_agent, to_string_error, AppState,
@@ -18,14 +21,20 @@ const TRAY_QUIT_ID: &str = "quit";
 const TRAY_SCHEDULE_LABEL_ID: &str = "schedule_label";
 const TRAY_SCHEDULE_OFF_ID: &str = "schedule_off";
 const TRAY_INTERVAL_3_ID: &str = "interval_3";
+const TRAY_DATA_TIME_LABEL_ID: &str = "data_time_label";
+const TRAY_DATA_TIME_VALUE_ID: &str = "data_time_value";
 const TRAY_AUTOSTART_ID: &str = "autostart";
+const TRAY_TTC_WEBSITE_ID: &str = "ttc_website";
 
 pub(crate) struct TrayControls {
     show: MenuItem<Wry>,
     schedule_label: MenuItem<Wry>,
     schedule_off: CheckMenuItem<Wry>,
     interval_3: CheckMenuItem<Wry>,
+    data_time_label: MenuItem<Wry>,
+    data_time_value: MenuItem<Wry>,
     autostart: CheckMenuItem<Wry>,
+    ttc_website: MenuItem<Wry>,
     quit: MenuItem<Wry>,
 }
 
@@ -65,6 +74,22 @@ pub(crate) fn setup_tray(app: &AppHandle) -> Result<(), String> {
         None::<&str>,
     )
     .map_err(to_string_error)?;
+    let data_time_label = MenuItem::with_id(
+        app,
+        TRAY_DATA_TIME_LABEL_ID,
+        labels.data_time_title,
+        false,
+        None::<&str>,
+    )
+    .map_err(to_string_error)?;
+    let data_time_value = MenuItem::with_id(
+        app,
+        TRAY_DATA_TIME_VALUE_ID,
+        data_time_text(&labels, &config),
+        false,
+        None::<&str>,
+    )
+    .map_err(to_string_error)?;
     let autostart = CheckMenuItem::with_id(
         app,
         TRAY_AUTOSTART_ID,
@@ -74,16 +99,29 @@ pub(crate) fn setup_tray(app: &AppHandle) -> Result<(), String> {
         None::<&str>,
     )
     .map_err(to_string_error)?;
+    let ttc_website = MenuItem::with_id(
+        app,
+        TRAY_TTC_WEBSITE_ID,
+        labels.ttc_website,
+        true,
+        None::<&str>,
+    )
+    .map_err(to_string_error)?;
     let quit = MenuItem::with_id(app, TRAY_QUIT_ID, labels.quit, true, None::<&str>)
         .map_err(to_string_error)?;
     let menu = MenuBuilder::new(app)
         .item(&show)
         .separator()
+        .item(&autostart)
+        .separator()
         .item(&schedule_label)
         .item(&schedule_off)
         .item(&interval_3)
         .separator()
-        .item(&autostart)
+        .item(&data_time_label)
+        .item(&data_time_value)
+        .separator()
+        .item(&ttc_website)
         .separator()
         .item(&quit)
         .build()
@@ -97,7 +135,10 @@ pub(crate) fn setup_tray(app: &AppHandle) -> Result<(), String> {
         schedule_label,
         schedule_off,
         interval_3,
+        data_time_label,
+        data_time_value,
         autostart,
+        ttc_website,
         quit,
     });
 
@@ -125,6 +166,10 @@ pub(crate) fn setup_tray(app: &AppHandle) -> Result<(), String> {
             TRAY_AUTOSTART_ID => {
                 let _ = refresh_tray(app);
                 let _ = toggle_autostart(app.clone());
+            }
+            TRAY_TTC_WEBSITE_ID => {
+                let _ = refresh_tray(app);
+                let _ = open_ttc_website(app);
             }
             TRAY_QUIT_ID => {
                 let _ = refresh_tray(app);
@@ -213,6 +258,7 @@ fn update_tray_checks(state: &AppState) -> Result<(), String> {
 
 fn update_tray_labels(state: &AppState) -> Result<(), String> {
     let labels = tray_labels();
+    let config = state.config.lock().map_err(lock_error)?.clone();
     if let Some(controls) = state.tray_controls.lock().map_err(lock_error)?.as_ref() {
         controls
             .show
@@ -231,8 +277,20 @@ fn update_tray_labels(state: &AppState) -> Result<(), String> {
             .set_text(labels.interval_3)
             .map_err(to_string_error)?;
         controls
+            .data_time_label
+            .set_text(labels.data_time_title)
+            .map_err(to_string_error)?;
+        controls
+            .data_time_value
+            .set_text(data_time_text(&labels, &config))
+            .map_err(to_string_error)?;
+        controls
             .autostart
             .set_text(labels.autostart)
+            .map_err(to_string_error)?;
+        controls
+            .ttc_website
+            .set_text(labels.ttc_website)
             .map_err(to_string_error)?;
         controls
             .quit
@@ -240,6 +298,34 @@ fn update_tray_labels(state: &AppState) -> Result<(), String> {
             .map_err(to_string_error)?;
     }
     Ok(())
+}
+
+fn data_time_text<'a>(labels: &'a TrayLabels, config: &'a AppConfig) -> &'a str {
+    config
+        .last_success_at
+        .as_deref()
+        .unwrap_or(labels.data_time_empty)
+}
+
+fn open_ttc_website(app: &AppHandle) -> Result<(), String> {
+    let config = app
+        .state::<AppState>()
+        .config
+        .lock()
+        .map_err(lock_error)?
+        .clone();
+    let source_url = config
+        .last_success_source_url
+        .as_deref()
+        .unwrap_or(&config.url);
+    let trade_url = trade_url_for_download_source(source_url)
+        .ok_or_else(|| "找不到可開啟的 TTC 網站來源".to_string())?;
+
+    std::process::Command::new("open")
+        .arg(trade_url)
+        .spawn()
+        .map(|_| ())
+        .map_err(|error| format!("無法開啟 TTC 網站：{error}"))
 }
 
 fn show_main_window(app: &AppHandle) {

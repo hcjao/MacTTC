@@ -6,6 +6,8 @@ use tauri::{AppHandle, Manager};
 const CONFIG_FILE: &str = "config.json";
 pub(crate) const NA_PRICE_TABLE_URL: &str = "https://us.tamrieltradecentre.com/download/PriceTable";
 pub(crate) const EU_PRICE_TABLE_URL: &str = "https://eu.tamrieltradecentre.com/download/PriceTable";
+const NA_TRADE_URL: &str = "https://us.tamrieltradecentre.com/pc/Trade";
+const EU_TRADE_URL: &str = "https://eu.tamrieltradecentre.com/pc/Trade";
 const TTC_ADDON_RELATIVE_PATH: &[&str] = &[
     "Documents",
     "Elder Scrolls Online",
@@ -96,6 +98,14 @@ pub(crate) fn save_config_to_disk(app: &AppHandle, config: &AppConfig) -> Result
 
 pub(crate) fn is_allowed_download_url(url: &str) -> bool {
     matches!(url, NA_PRICE_TABLE_URL | EU_PRICE_TABLE_URL)
+}
+
+pub(crate) fn trade_url_for_download_source(url: &str) -> Option<&'static str> {
+    match url {
+        NA_PRICE_TABLE_URL => Some(NA_TRADE_URL),
+        EU_PRICE_TABLE_URL => Some(EU_TRADE_URL),
+        _ => None,
+    }
 }
 
 pub(crate) fn normalized_config(mut config: AppConfig) -> Result<AppConfig, String> {

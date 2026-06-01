@@ -1,6 +1,6 @@
 [package]
 name = "mac-ttc"
-version = "0.9.7"
+version = "0.9.9"
 description = "Scheduled ZIP downloader and extractor for macOS"
 authors = ["MacTTC"]
 edition = "2021"

@@ -1,12 +1,14 @@
 # MacTTC
 
-Current version: `0.9.7`
+Current version: `0.9.9`
 
 MacTTC is a macOS Tauri app for updating the Tamriel Trade Centre AddOn price table for The Elder Scrolls Online.
 
-The app stays in the macOS menu bar by default. Users can open the main window from the status menu, choose the NA or EU download source, and run an update into the fixed local TamrielTradeCentre AddOn folder.
+The app starts as a macOS menu bar status item. The main window is hidden on startup and can be opened from the status menu.
 
 ## Interface
+
+### Main Window
 
 The main window includes:
 
@@ -19,7 +21,7 @@ The main window includes:
 - Fixed destination folder path
 - Destination folder availability message
 - Button to reveal the destination folder
-- Run button
+- `進行下載` / `Download` button
 - Status area showing:
   - Start time
   - Finish time
@@ -32,20 +34,23 @@ The app window uses these size limits:
 - Minimum width: `720`
 - Minimum height: `680`
 
-The app does not show the main window on startup. It starts as a macOS menu bar status item. The window can be opened from the status menu.
+### Status Menu
 
 The menu bar status item includes:
 
-- `顯示 MacTTC` / `Show MacTTC`
+- `開啟MacTTC` / `Open MacTTC`
+- `開機啟動` / `Launch at Login`
 - `下載排程` / `Download Schedule` as a disabled section label
 - `關閉排程` / `Turn Schedule Off`
 - `每 3 小時` / `Every 3 hours`
-- `開機啟動` / `Launch at Login`
+- `目前資料時間` / `Current Data Time`
+- Last successful download time, or `尚無成功下載紀錄` / `No successful download yet`
+- `前往TTC網站` / `Go to TTC Website`
 - `退出` / `Quit`
 
-The status menu language follows the primary system language, not the in-app language switch. If the primary system language is Chinese, the status menu uses Traditional Chinese. All other primary system languages use English.
+The status menu language follows the primary macOS system language. If the primary system language is Chinese, the status menu uses Traditional Chinese. All other primary system languages use English.
 
-The main interface language can be switched between Traditional Chinese and English. On first launch, Chinese primary system language uses Chinese; all other primary system languages use English. The app remembers the last selected interface language and uses it on the next launch.
+The main window language can be switched between Traditional Chinese and English. On first launch, a Chinese primary system language uses Chinese; all other primary system languages use English. The app remembers the last selected main-window language and uses it on the next launch.
 
 ## Features
 
@@ -58,17 +63,20 @@ The main interface language can be switched between Traditional Chinese and Engl
 - Destination folder is fixed to:
   - `~/Documents/Elder Scrolls Online/live/AddOns/TamrielTradeCentre`
 - The app checks whether the destination folder exists on startup.
-- The Run button is disabled when the destination folder is missing.
+- The download button is disabled when the destination folder is missing.
 - Errors are shown with native popup dialogs.
 - Closing the main window hides it instead of quitting the app.
 - The app remembers the last successful download time and the source URL used for that successful run.
+- The status menu can open the TTC Trade website for the recorded download source:
+  - NA: `https://us.tamrieltradecentre.com/pc/Trade`
+  - EU: `https://eu.tamrieltradecentre.com/pc/Trade`
 - When launch at login is enabled, the app opens at login and uses the normal startup download behavior.
 
 ## Mechanisms
 
 ### Download Flow
 
-When the user clicks Run:
+When the user clicks `進行下載` / `Download`:
 
 1. Save the selected source preference.
 2. Validate the source URL against the allowlist.
@@ -112,7 +120,7 @@ $HOME/Documents/Elder Scrolls Online/live/AddOns/TamrielTradeCentre
 If the folder does not exist:
 
 - The UI shows the resolved absolute path and a missing-folder message.
-- The Run button is disabled.
+- The download button is disabled.
 - The backend rejects execution.
 - The app does not create the folder automatically.
 
@@ -140,6 +148,24 @@ When launch at login is enabled:
 When launch at login is disabled:
 
 - Remove `~/Library/LaunchAgents/com.macttc.downloader.plist` if it exists.
+
+### TTC Website
+
+The status menu `前往TTC網站` / `Go to TTC Website` item opens the Trade page for the recorded successful download source.
+
+If the recorded source is NA, the app opens:
+
+```text
+https://us.tamrieltradecentre.com/pc/Trade
+```
+
+If the recorded source is EU, the app opens:
+
+```text
+https://eu.tamrieltradecentre.com/pc/Trade
+```
+
+If no successful source has been recorded yet, the app falls back to the currently saved source URL.
 
 ### Storage
 
@@ -178,20 +204,30 @@ npm install
 npm run tauri:dev
 ```
 
-### Build the App and DMG
+### Build for Development Testing
+
+During normal development and testing, build only the `.app` bundle:
 
 ```sh
-npm run tauri:build
+npm run tauri -- build --bundles app
 ```
 
-Expected outputs:
+Expected output:
 
 ```text
 src-tauri/target/release/bundle/macos/MacTTC.app
-src-tauri/target/release/bundle/dmg/MacTTC_0.9.7_aarch64.dmg
 ```
 
-If Tauri's DMG script fails after producing the `.app`, the DMG can be created manually with `hdiutil` from the generated app bundle.
+### Build for Release
+
+Formal release packaging should follow the project release policy in `docs/release.md`.
+
+The full Tauri release build can produce:
+
+```text
+src-tauri/target/release/bundle/macos/MacTTC.app
+src-tauri/target/release/bundle/dmg/MacTTC_0.9.9_aarch64.dmg
+```
 
 ## Other
 
@@ -202,6 +238,15 @@ Implementation stack:
 - Backend: Rust
 - Downloads: `reqwest`
 - ZIP extraction: Rust `zip` crate
+
+Backend modules:
+
+- `config.rs`: app settings, fixed paths, source allowlist, destination validation
+- `downloader.rs`: download job, archive download, ZIP extraction, success recording
+- `localization.rs`: status menu language labels and macOS language detection
+- `scheduler.rs`: startup download and 3-hour schedule
+- `tray.rs`: macOS status menu setup and menu actions
+- `lib.rs`: Tauri setup, commands, app state, launch-at-login wiring
 
 User-facing errors must be shown in a native popup dialog. The UI avoids repeatedly showing the same error if it is already visible or was just shown.
 

@@ -5,27 +5,36 @@ pub(crate) struct TrayLabels {
     pub(crate) schedule_title: &'static str,
     pub(crate) schedule_off: &'static str,
     pub(crate) interval_3: &'static str,
+    pub(crate) data_time_title: &'static str,
+    pub(crate) data_time_empty: &'static str,
     pub(crate) autostart: &'static str,
+    pub(crate) ttc_website: &'static str,
     pub(crate) quit: &'static str,
 }
 
 pub(crate) fn tray_labels() -> TrayLabels {
     if system_language_is_chinese() {
         TrayLabels {
-            show: "顯示 MacTTC",
+            show: "開啟MacTTC",
             schedule_title: "下載排程",
             schedule_off: "關閉排程",
             interval_3: "每 3 小時",
+            data_time_title: "目前資料時間",
+            data_time_empty: "尚無成功下載紀錄",
             autostart: "開機啟動",
+            ttc_website: "前往TTC網站",
             quit: "退出",
         }
     } else {
         TrayLabels {
-            show: "Show MacTTC",
+            show: "Open MacTTC",
             schedule_title: "Download Schedule",
             schedule_off: "Turn Schedule Off",
             interval_3: "Every 3 hours",
+            data_time_title: "Current Data Time",
+            data_time_empty: "No successful download yet",
             autostart: "Launch at Login",
+            ttc_website: "Go to TTC Website",
             quit: "Quit",
         }
     }

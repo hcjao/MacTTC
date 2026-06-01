@@ -64,7 +64,7 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
       "找不到資料夾，請先確認 ESO AddOns/TamrielTradeCentre 已存在",
     sourceNaRegion: "北美",
     sourceEuRegion: "歐洲",
-    run: "執行",
+    run: "進行下載",
     runningButton: "執行中",
     lastStarted: "開始時間",
     lastFinished: "完成時間",
@@ -84,7 +84,7 @@ const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
       "Folder not found. Confirm that ESO AddOns/TamrielTradeCentre exists first.",
     sourceNaRegion: "North America",
     sourceEuRegion: "Europe",
-    run: "Run",
+    run: "Download",
     runningButton: "Running",
     lastStarted: "Start Time",
     lastFinished: "Finish Time",
@@ -157,7 +157,7 @@ app.innerHTML = `
       </div>
 
       <div class="actions">
-        <button id="run-now" type="button" data-i18n="run">執行</button>
+        <button id="run-now" type="button" data-i18n="run">進行下載</button>
       </div>
     </section>
 

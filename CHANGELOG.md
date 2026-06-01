@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.9 - 2026-06-01
+
+### Changed
+
+- Reorganized the Rust backend by splitting `lib.rs` into focused modules for config, downloading, localization, scheduling, and tray menu behavior.
+- Updated the main window destination folder display so the label sits inside the path display while the reveal-folder button stays outside the display box.
+- Renamed the main download button to `進行下載` / `Download`.
+- Updated the status menu text to `開啟MacTTC` / `Open MacTTC`.
+- Moved the status menu launch-at-login option before the download schedule section.
+- Added a status menu data-time section showing the last successful download time, or an empty-state message when no successful download exists.
+- Added a status menu item for opening the TTC Trade website for the recorded NA or EU source.
+- Updated the TTC website status menu text to `前往TTC網站` / `Go to TTC Website`.
+
 ## 0.9.7 - 2026-05-30
 
 ### Changed
