@@ -12,6 +12,7 @@
 - Added a status menu data-time section showing the last successful download time, or an empty-state message when no successful download exists.
 - Added a status menu item for opening the TTC Trade website for the recorded NA or EU source.
 - Updated the TTC website status menu text to `前往TTC網站` / `Go to TTC Website`.
+- Replaced the custom LaunchAgent file writer with Tauri's autostart plugin for launch-at-login support.
 
 ## 0.9.7 - 2026-05-30
 

@@ -141,13 +141,13 @@ The scheduled job uses the currently saved source URL and the fixed destination 
 
 When launch at login is enabled:
 
-- Create or update `~/Library/LaunchAgents/com.macttc.downloader.plist`.
-- Launch MacTTC at user login by opening the `.app` bundle.
+- Enable startup registration through the Tauri autostart plugin.
+- On macOS, the plugin uses the LaunchAgent launcher under Tauri's managed autostart flow.
 - After startup, use the normal startup download behavior.
 
 When launch at login is disabled:
 
-- Remove `~/Library/LaunchAgents/com.macttc.downloader.plist` if it exists.
+- Disable startup registration through the Tauri autostart plugin.
 
 ### TTC Website
 

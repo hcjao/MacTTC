@@ -1,13 +1,8 @@
 use chrono::{DateTime, Local};
 use serde::Serialize;
-use std::{
-    env,
-    error::Error,
-    fs, io,
-    path::{Path, PathBuf},
-    sync::Mutex,
-};
+use std::{error::Error, io, sync::Mutex};
 use tauri::{async_runtime::JoinHandle, ActivationPolicy, AppHandle, Manager, State, WindowEvent};
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 
 mod config;
 mod downloader;
@@ -24,7 +19,6 @@ use downloader::run_job;
 use scheduler::{maybe_run_startup_download, restart_scheduler};
 use tray::setup_tray;
 
-const LAUNCH_AGENT_LABEL: &str = "com.macttc.downloader";
 const JOB_STATUS_CHANGED_EVENT: &str = "job-status-changed";
 
 #[derive(Debug, Clone, Serialize)]
@@ -159,6 +153,10 @@ fn reveal_destination(state: State<'_, AppState>) -> Result<(), String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::LaunchAgent,
+            None,
+        ))
         .setup(|app| {
             app.set_activation_policy(ActivationPolicy::Accessory);
 
@@ -176,7 +174,7 @@ pub fn run() {
             setup_tray(app.handle()).map_err(setup_error)?;
             let app_handle = app.handle().clone();
             let managed_state = app.state::<AppState>();
-            sync_launch_agent(managed_state.inner()).map_err(setup_error)?;
+            sync_autostart(app.handle(), managed_state.inner()).map_err(setup_error)?;
             restart_scheduler(app_handle.clone(), managed_state.inner()).map_err(setup_error)?;
             maybe_run_startup_download(app_handle, managed_state.inner());
             Ok(())
@@ -199,71 +197,20 @@ pub fn run() {
         .expect("error while running MacTTC");
 }
 
-pub(crate) fn sync_launch_agent(state: &AppState) -> Result<(), String> {
+pub(crate) fn sync_autostart(app: &AppHandle, state: &AppState) -> Result<(), String> {
     let enabled = state.config.lock().map_err(lock_error)?.autostart_enabled;
-    let path = launch_agent_path()?;
-
+    let autostart = app.autolaunch();
     if enabled {
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)
-                .map_err(|error| format!("無法建立 LaunchAgents 資料夾：{error}"))?;
-        }
-        let executable =
-            env::current_exe().map_err(|error| format!("無法取得程式路徑：{error}"))?;
-        let app_bundle = app_bundle_path(&executable).unwrap_or(executable);
-        fs::write(path, launch_agent_plist(&app_bundle))
-            .map_err(|error| format!("無法建立開機啟動設定：{error}"))?;
-    } else if path.exists() {
-        fs::remove_file(path).map_err(|error| format!("無法移除開機啟動設定：{error}"))?;
+        autostart
+            .enable()
+            .map_err(|error| format!("無法啟用開機啟動：{error}"))?;
+    } else {
+        autostart
+            .disable()
+            .map_err(|error| format!("無法停用開機啟動：{error}"))?;
     }
 
     Ok(())
-}
-
-fn launch_agent_path() -> Result<PathBuf, String> {
-    let mut path = dirs::home_dir().ok_or_else(|| "無法取得使用者 home 目錄".to_string())?;
-    path.push("Library");
-    path.push("LaunchAgents");
-    path.push(format!("{LAUNCH_AGENT_LABEL}.plist"));
-    Ok(path)
-}
-
-fn launch_agent_plist(app_bundle: &Path) -> String {
-    let app_bundle = escape_plist_text(&app_bundle.to_string_lossy());
-    format!(
-        r#"<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>{LAUNCH_AGENT_LABEL}</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>/usr/bin/open</string>
-    <string>{app_bundle}</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-</dict>
-</plist>
-"#
-    )
-}
-
-fn app_bundle_path(executable: &Path) -> Option<PathBuf> {
-    executable
-        .ancestors()
-        .find(|path| path.extension().is_some_and(|extension| extension == "app"))
-        .map(Path::to_path_buf)
-}
-
-fn escape_plist_text(value: &str) -> String {
-    value
-        .replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&apos;")
 }
 
 pub(crate) fn now_string() -> String {

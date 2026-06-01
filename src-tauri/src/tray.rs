@@ -13,7 +13,7 @@ use crate::{
     localization::{tray_labels, TrayLabels},
     lock_error,
     scheduler::restart_scheduler,
-    sync_launch_agent, to_string_error, AppState,
+    sync_autostart, to_string_error, AppState,
 };
 
 const TRAY_SHOW_ID: &str = "show";
@@ -233,7 +233,7 @@ fn toggle_autostart(app: AppHandle) -> Result<(), String> {
         config.destination_dir = fixed_destination_string()?;
         save_config_to_disk(&app, &config)?;
     }
-    sync_launch_agent(state.inner())?;
+    sync_autostart(&app, state.inner())?;
     update_tray_checks(state.inner())
 }
 
